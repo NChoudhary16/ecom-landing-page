@@ -9,7 +9,7 @@
 }
 body {
   height: 100vh;
-  width: 100vw;
+  width: 100%;
   background-color: #000;
 }
 .nav {
@@ -113,9 +113,15 @@ span {
 
 /* main part */
 main {
-  height: 75vh;
-  width: 100vw;
+  min-height: 75vh;
+  width: 100%;
   position: relative;
+}
+.wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%; /* or whatever you need */
+  overflow: hidden;
 }
 .txt-area {
   height: 26vh;
@@ -151,11 +157,11 @@ h2 {
 }
 .radial-bg {
   border-radius: 50%;
-  position: fixed;
+  position: absolute;
   bottom: 0;
   left: 10px;
   transform: translate(-1%, 30%);
-  width: 100vw;
+  width: 100%;
   height: 60vh;
   background: radial-gradient(
     circle at center bottom,
@@ -166,7 +172,7 @@ h2 {
   filter: blur(60px);
 }
 .container {
-  height: 57.5%;
+  height: 58.5%;
   width: 60vw;
   margin: 0 auto;
   position: relative;
@@ -255,7 +261,7 @@ h4 {
   position: relative;
   border-radius: 1rem 1rem 1rem 1rem;
   background-color: #0b0b20;
-  font-family: sans-serif,"SoulDaisy";
+  font-family: sans-serif, "SoulDaisy";
   font-weight: 400;
 }
 .navbar input {
@@ -369,7 +375,7 @@ i {
   transition: all 0.2s ease-in;
 }
 
-.cards{
+.cards {
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
@@ -379,41 +385,40 @@ i {
   height: 18vh;
   /* background-color: #a5a5a5; */
 }
-.card1{
-  padding: .5rem .5rem 0 1.25rem;
+.card1 {
+  padding: 0.5rem 0.5rem 0 1.25rem;
   height: 16vh;
- width: 24%;
+  width: 24%;
   background-color: #0b0b20;
   border: 2px solid black;
   border-radius: 15px;
   color: #ffffff;
-  background-color: #00371A;
+  background-color: #00371a;
 }
-.card-txt{
+.card-txt {
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: relative;
 }
-.card-txt i{
+.card-txt i {
   background-color: #030004;
   border-radius: 35px;
   cursor: pointer;
 }
 
-.card1 h5{
+.card1 h5 {
   font-size: 10px;
-  font-family: sans-serif,"SoulDaisy";
+  font-family: sans-serif, "SoulDaisy";
   text-align: left;
   font-weight: 300;
   background: linear-gradient(to bottom, #1ae121, #00e095);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-   position: absolute;
+  position: absolute;
   bottom: 30px;
 }
-.card1 h3{
- 
+.card1 h3 {
   text-align: left;
   font-size: 3.5vw;
   font-family: "SoulDaisy", sans-serif;
@@ -422,13 +427,14 @@ i {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-#two,#three,#four{
-  background-color: #01000A;
+#two,
+#three,
+#four {
+  background-color: #01000a;
   /* color: red; */
 }
-#four h5{
+#four h5 {
   background: linear-gradient(to bottom, #ff0000, #4c1501);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  
 }
