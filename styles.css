@@ -255,6 +255,8 @@ h4 {
   position: relative;
   border-radius: 1rem 1rem 1rem 1rem;
   background-color: #0b0b20;
+  font-family: sans-serif,"SoulDaisy";
+  font-weight: 400;
 }
 .navbar input {
   width: 400px;
