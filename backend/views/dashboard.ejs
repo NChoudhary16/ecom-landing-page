@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - GreenPulse</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    body { background: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+    .sidebar {
+      height: 100vh;
+      background: #fff;
+      border-right: 1px solid #e0e0e0;
+      padding: 1.5rem 1rem;
+    }
+    .sidebar a {
+      display: block;
+      margin: .8rem 0;
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .sidebar a:hover { color: #03a110; }
+    .card { border-radius: 12px; }
+    .progress-circle {
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      border: 10px solid #e0e0e0;
+      border-top: 10px solid #03a110;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar -->
+      <div class="col-2 sidebar">
+        <h4 class="mb-4">GreenPulse</h4>
+        <a href="#"><i class="ri-dashboard-fill"></i> Dashboard</a>
+        <a href="#"><i class="ri-task-fill"></i> Tasks</a>
+        <a href="#"><i class="ri-calendar-fill"></i> Calendar</a>
+        <a href="#"><i class="ri-bar-chart-box-fill"></i> Analytics</a>
+        <a href="#"><i class="ri-team-fill"></i> Team</a>
+        <hr>
+        <a href="#"><i class="ri-settings-3-fill"></i> Settings</a>
+        <a href="/auth/logout"><i class="ri-logout-box-fill"></i> Logout</a>
+      </div>
+
+      <!-- Main content -->
+      <div class="col-10 p-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <input type="text" class="form-control w-50" placeholder="Search task">
+          <div class="d-flex align-items-center gap-3">
+            <div class="notification-wrapper">
+              <i class="ri-notification-3-fill fs-4" id="notification-bell"></i>
+              <span class="notification-badge" id="notification-badge">0</span>
+              <div class="notification-dropdown" id="notification-center">
+                <div class="notification-header">
+                  <h6 class="mb-0">Notifications</h6>
+                  <button class="clear-all">Clear all</button>
+                </div>
+                <div class="notification-list" id="notification-list">
+                  <!-- Notifications will be inserted here -->
+                </div>
+              </div>
+            </div>
+            <img src="/hamster.jpg" class="rounded-circle" width="40">
+            <span><%= user.id %></span>
+          </div>
+        </div>
+
+        <!-- Cards row -->
+        <div class="row g-3">
+          <div class="col-md-3">
+            <div class="card p-3 shadow-sm">
+              <h6>Total Projects</h6>
+              <h3>24</h3>
+              <small class="text-success">↑ Increased from last month</small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card p-3 shadow-sm">
+              <h6>Ended Projects</h6>
+              <h3>10</h3>
+              <small class="text-success">↑ Increased</small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card p-3 shadow-sm">
+              <h6>Running Projects</h6>
+              <h3>12</h3>
+              <small class="text-success">↑ Improved</small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card p-3 shadow-sm">
+              <h6>Pending Projects</h6>
+              <h3>2</h3>
+              <small class="text-muted">On Discussion</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics row -->
+        <div class="row g-3 mt-3">
+          <div class="col-md-6">
+            <div class="card p-3 shadow-sm">
+              <h6>Project Progress</h6>
+              <div class="d-flex justify-content-center mt-3">
+                <div class="progress-circle">41%</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card p-3 shadow-sm">
+              <h6>Team Collaboration</h6>
+              <ul class="list-group">
+                <li class="list-group-item"> Manoj - Completed</li>
+                <li class="list-group-item"> dinchak pooja - In Progress</li>
+                <li class="list-group-item"> Babar azam - In Progress</li>
+                <li class="list-group-item"> dhruv - Pending</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Debug flag
+    const DEBUG = true;
+    
+    // Initialize notification system
+    const notificationSystem = {
+      init() {
+        this.bell = document.getElementById('notification-bell');
+        this.badge = document.getElementById('notification-badge');
+        this.center = document.getElementById('notification-center');
+        this.list = document.getElementById('notification-list');
+        this.setupEventListeners();
+        if (DEBUG) console.log('Notification system initialized');
+      },
+
+      setupEventListeners() {
+        // Toggle notification center on bell click
+        this.bell.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.center.style.display = this.center.style.display === 'block' ? 'none' : 'block';
+          if (DEBUG) console.log('Bell clicked, toggling notification center');
+        });
+
+        // Close notification center when clicking outside
+        document.addEventListener('click', (e) => {
+          if (!this.center.contains(e.target) && e.target !== this.bell) {
+            this.center.style.display = 'none';
+          }
+        });
+      }
+    };
+
+    // Initialize Socket.IO
+    const socket = io(window.location.origin, {
+      withCredentials: true
+    });
+    
+    // Join user's personal notification room
+    socket.emit('join', '<%= user.id %>');
+    
+    if (DEBUG) {
+      socket.on('connect', () => console.log('Socket connected'));
+      socket.on('disconnect', () => console.log('Socket disconnected'));
+    }
+    
+    // Listen for real-time notifications
+    socket.on('notification', (data) => {
+      showNotification(data.message, data.type);
+      updateNotificationBadge(1);
+    });
+
+    // Handle connection status
+    socket.on('connect', () => {
+      showNotification('Connected to real-time notifications', 'success');
+    });
+
+    socket.on('disconnect', () => {
+      showNotification('Lost connection to server', 'error');
+    });
+
+    // Notification counter
+    let notificationCount = 0;
+    
+    function updateNotificationBadge(increment = 0) {
+      notificationCount += increment;
+      const badge = document.getElementById('notification-badge');
+      if (notificationCount > 0) {
+        badge.style.display = 'flex';
+        badge.textContent = notificationCount > 99 ? '99+' : notificationCount;
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    // Enhanced Notification Helper Function
+    function showNotification(message, type = 'success') {
+      if (DEBUG) console.log('Showing notification:', { message, type });
+      
+      const colors = {
+        success: 'linear-gradient(to right, #06a761, #048950)',
+        error: 'linear-gradient(to right, #ff5f6d, #ff4757)',
+        warning: 'linear-gradient(to right, #f7b733, #fc4a1a)',
+        info: 'linear-gradient(to right, #2193b0, #6dd5ed)'
+      };
+
+      // Add to notification center
+      const notification = {
+        message,
+        type,
+        time: new Date()
+      };
+      addNotification(notification);
+      
+      // Show toast notification
+
+      Toastify({
+        text: message,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        stopOnFocus: true,
+        style: {
+          background: colors[type],
+          borderRadius: '10px',
+          padding: '1rem 1.5rem',
+        },
+        onClick: function(){
+          if (DEBUG) console.log('Toast clicked');
+          const notificationCenter = document.querySelector('.notification-dropdown');
+          if (notificationCenter) {
+            notificationCenter.style.display = notificationCenter.style.display === 'block' ? 'none' : 'block';
+          }
+        }
+      }).showToast();
+    }
+
+      // Notification List Management
+      const notifications = [];
+      const notificationList = document.getElementById('notification-list');
+
+      function addNotification(notification) {
+        const { message, type, time = new Date() } = notification;
+        const icons = {
+          success: 'ri-checkbox-circle-line',
+          error: 'ri-error-warning-line',
+          warning: 'ri-alert-line',
+          info: 'ri-information-line'
+        };
+
+        const notificationElement = document.createElement('div');
+        notificationElement.className = 'notification-item';
+        notificationElement.innerHTML = `
+          <div class="notification-content">
+            <div class="notification-icon ${type}">
+              <i class="${icons[type]}"></i>
+            </div>
+            <div class="notification-message">
+              ${message}
+              <div class="notification-time">${formatTime(time)}</div>
+            </div>
+          </div>
+        `;
+
+        notificationList.insertBefore(notificationElement, notificationList.firstChild);
+        notifications.push(notification);
+        updateNotificationBadge(1);
+
+        // Auto-remove after 5 minutes
+        setTimeout(() => {
+          if (notificationElement.parentNode) {
+            notificationElement.remove();
+            updateNotificationBadge(-1);
+          }
+        }, 300000);
+      }
+
+      function formatTime(date) {
+        const now = new Date();
+        const diff = now - new Date(date);
+        const minutes = Math.floor(diff / 60000);
+        
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (minutes < 1440) return `${Math.floor(minutes/60)}h ago`;
+        return new Date(date).toLocaleDateString();
+      }
+
+      // Clear all notifications
+      document.querySelector('.clear-all').addEventListener('click', (e) => {
+        e.stopPropagation();
+        notificationList.innerHTML = '';
+        notificationCount = 0;
+        updateNotificationBadge(0);
+        showNotification('All notifications cleared', 'success');
+      });
+
+      // Initialize notifications
+      document.addEventListener('DOMContentLoaded', () => {
+        // Welcome notification
+        setTimeout(() => {
+          const welcomeNotification = {
+            message: 'Welcome back, <%= user.name %>!',
+            type: 'info',
+            time: new Date()
+          };
+          showNotification(welcomeNotification.message, welcomeNotification.type);
+          addNotification(welcomeNotification);
+        }, 1000);
+
+      // Add click handlers for interactive elements
+      document.querySelectorAll('.stat-card').forEach(card => {
+        card.addEventListener('click', function() {
+          const title = this.querySelector('h6').textContent;
+          showNotification(`Viewing details for ${title}`, 'info');
+        });
+      });
+
+      // Team activity notifications
+      document.querySelectorAll('.team-item').forEach(item => {
+        item.addEventListener('click', function() {
+          const name = this.querySelector('h6').textContent;
+          const status = this.querySelector('.status-badge').textContent;
+          showNotification(`${name}'s current status: ${status}`, 'info');
+        });
+      });
+
+      // Search input handler
+      const searchInput = document.querySelector('.search-bar');
+      let searchTimeout;
+      
+      searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          if (this.value.trim()) {
+            showNotification(`Searching for: ${this.value}`, 'info');
+          }
+        }, 1000);
+      });
+    });
+  </script>
+
+  <!-- Add pulse animation to notification bell -->
+  <style>
+    @keyframes notification-pulse {
+      0% {
+        transform: scale(1);
+        opacity: 0.75;
+      }
+      50% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 0.75;
+      }
+    }
+
+    .ri-notification-3-line {
+      cursor: pointer;
+      font-size: 1.25rem;
+      transition: all 0.3s ease;
+    }
+
+    .ri-notification-3-line:hover {
+      animation: notification-pulse 1s infinite;
+      color: var(--primary);
+    }
+
+    /* Notification Styles */
+    .notification-wrapper {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 11px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    .notification-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      width: 320px;
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--border-radius);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      display: none;
+      z-index: 1000;
+      margin-top: 10px;
+    }
+
+    .notification-dropdown::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      right: 20px;
+      width: 12px;
+      height: 12px;
+      background: var(--surface);
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      transform: rotate(45deg);
+    }
+
+    .notification-wrapper:hover .notification-dropdown {
+      display: block;
+    }
+
+    .notification-header {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .clear-all {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 0.875rem;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+
+    .clear-all:hover {
+      background: rgba(6, 167, 97, 0.1);
+    }
+
+    .notification-list {
+      max-height: 360px;
+      overflow-y: auto;
+    }
+
+    .notification-item {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      transition: background-color 0.2s;
+      cursor: pointer;
+    }
+
+    .notification-item:hover {
+      background: var(--surface-light);
+    }
+
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+
+    .notification-content {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .notification-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .notification-icon.success { background: rgba(6, 167, 97, 0.2); color: #06a761; }
+    .notification-icon.warning { background: rgba(255, 170, 0, 0.2); color: #ffaa00; }
+    .notification-icon.error { background: rgba(255, 95, 109, 0.2); color: #ff5f6d; }
+    .notification-icon.info { background: rgba(33, 147, 176, 0.2); color: #2193b0; }
+
+    .notification-message {
+      flex-grow: 1;
+      font-size: 0.875rem;
+    }
+
+    .notification-time {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    /* Toast Customization */
+    .toastify {
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .toastify:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Custom Scrollbar for Notification List */
+    .notification-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .notification-list::-webkit-scrollbar-track {
+      background: var(--surface-light);
+    }
+
+    .notification-list::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 3px;
+    }
+
+    .notification-list::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-dark);
+    }
+  </style>
+</body>
+</html>
